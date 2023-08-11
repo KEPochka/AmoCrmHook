@@ -1,3 +1,4 @@
+using Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.OpenApi.Models;
@@ -13,12 +14,13 @@ var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
 	.UseNpgsql(connectionString)
 	.Options;
 
-builder.Services.AddSingleton<IDbContextOptions>(dbOptions);
-
-builder.Services.AddSingleton<IMetaDataEditor, MetaDataEditor>();
-
 var settings = builder.Configuration.GetSection("Settings").Get<Settings>();
 builder.Services.AddSingleton(settings);
+builder.Services.AddSingleton<IDbContextOptions>(dbOptions);
+builder.Services.AddSingleton<IMetaDataEditor, MetaDataEditor>();
+
+builder.Services.AddScoped<IJsonDeserializer<Payment>, JsonDeserializer<Payment>>();
+builder.Services.AddScoped<IJsonDeserializer<Rate>, JsonDeserializer<Rate>>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -22,18 +22,25 @@ public class DataController : ControllerBase
     /// <summary>
     /// Controller constructor.
     /// </summary>
-    /// <param name="metaDataEditor">Controls structure in the database.</param>
     /// <param name="dbOptions">Database context options.</param>
+    /// <param name="paymentDeserializer">Gets all the information from the incoming JSON payment structure.</param>
+    /// <param name="rateDeserializer">Gets all the information from the incoming JSON rate structure.</param>
+    /// <param name="metaDataEditor">Controls structure in the database.</param>
     /// <param name="settings">Application configuration settings.</param>
-    public DataController(IMetaDataEditor metaDataEditor, IDbContextOptions dbOptions, Settings settings)
+    
+    public DataController(IDbContextOptions dbOptions, IJsonDeserializer<Payment> paymentDeserializer, IJsonDeserializer<Rate> rateDeserializer, IMetaDataEditor metaDataEditor, Settings settings)
     {
         Settings = settings;
         MetaDataEditor = metaDataEditor;
+        RateDeserializer = rateDeserializer;
+        PaymentDeserializer = paymentDeserializer;
         DbOptions = (DbContextOptions<ApplicationDbContext>)dbOptions;
     }
 
     private Settings Settings { get; }
     private IMetaDataEditor MetaDataEditor { get; }
+    private IJsonDeserializer<Rate> RateDeserializer { get; }
+    private IJsonDeserializer<Payment> PaymentDeserializer { get; }
     private DbContextOptions<ApplicationDbContext> DbOptions { get; }
 
     /// <summary>
@@ -63,7 +70,7 @@ public class DataController : ControllerBase
                 payments = await Task.Run(() =>
                 {
                     Dictionary<Payment, PropertyDescriptorCollection> result =
-                        JsonDeserializer<Payment>.ParseJson(dynamicObject.payments, Settings.ModelsPath, Settings.Namespace, out newPaymentProperties);
+                        PaymentDeserializer.ParseJson(dynamicObject.payments, Settings.ModelsPath, Settings.Namespace, out newPaymentProperties);
 
                     if (newPaymentProperties is { Count: > 0 })
                     {
@@ -80,7 +87,7 @@ public class DataController : ControllerBase
                 rates = await Task.Run(() =>
                 {
                     Dictionary<Rate, PropertyDescriptorCollection> result =
-                        JsonDeserializer<Rate>.ParseJson(dynamicObject.rate, Settings.ModelsPath, Settings.Namespace, out newRateProperties);
+                        RateDeserializer.ParseJson(dynamicObject.rate, Settings.ModelsPath, Settings.Namespace, out newRateProperties);
 
                     if (newRateProperties is { Count: > 0 })
                     {
@@ -110,10 +117,10 @@ public class DataController : ControllerBase
                     MetaDataEditor.CodeFirst(dbContext);
 
                     if (payments != null)
-                        await UpsertDataInTheDatabase(dbContext, types, payments);
+                        await UpsertDataInTheDatabase(dbContext, types, payments, (IPropertiesCache)PaymentDeserializer);
 
                     if (rates != null)
-                        await UpsertDataInTheDatabase(dbContext, types, rates);
+                        await UpsertDataInTheDatabase(dbContext, types, rates, (IPropertiesCache)RateDeserializer);
 
                     await dbContext.SaveChangesAsync();
                 }
@@ -149,7 +156,7 @@ public class DataController : ControllerBase
         }
     }
 
-    private static void CopyPropertyValues(object srcObj, PropertyDescriptor[] srcProps, object trgObj, PropertyInfo[] trgProps)
+    private static void CopyPropertyValues(object srcObj, PropertyDescriptor[] srcProps, object trgObj, PropertyInfo[] trgProps, IPropertiesCache cache)
     {
         foreach (var property in srcProps)
         {
@@ -166,14 +173,14 @@ public class DataController : ControllerBase
 
                         if (property.PropertyType.Name == "Type")
                         {
-                            var props = JPropertyHelper.GetProperties($"{property.Name}{id}");
+                            var props = cache.GetProperties($"{property.Name}{id}");
                             if (props != null)
-                                CopyPropertyValues(val, props, obj, obj.GetType().GetProperties());
+                                CopyPropertyValues(val, props, obj, obj.GetType().GetProperties(), cache);
                         }
                         else
                         {
                             var props = TypeDescriptor.GetProperties(val.GetType());
-                            CopyPropertyValues(val, props.Cast<PropertyDescriptor>().ToArray(), obj, obj.GetType().GetProperties());
+                            CopyPropertyValues(val, props.Cast<PropertyDescriptor>().ToArray(), obj, obj.GetType().GetProperties(), cache);
                         }
                     }
                     else
@@ -183,7 +190,7 @@ public class DataController : ControllerBase
         }
     }
 
-    private static Task UpsertDataInTheDatabase<TModel>(ApplicationDbContext dbContext, Type[] types, Dictionary<TModel, PropertyDescriptorCollection> models) where TModel : notnull, new()
+    private static Task UpsertDataInTheDatabase<TModel>(ApplicationDbContext dbContext, Type[] types, Dictionary<TModel, PropertyDescriptorCollection> models, IPropertiesCache cache) where TModel : notnull, new()
     {
         return Task.Run(() =>
         {
@@ -199,7 +206,7 @@ public class DataController : ControllerBase
                 if (model.Key == null)
                     throw new InvalidProgramException($"Main model '{t.FullName}' is null");
                 
-                CopyPropertyValues(model.Key, properties, obj, objProperties);
+                CopyPropertyValues(model.Key, properties, obj, objProperties, cache);
 
                 dbContext.AddOrUpdate(obj);
             }

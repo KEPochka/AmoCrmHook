@@ -1,3 +1,4 @@
+using Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApp;
@@ -30,9 +31,9 @@ namespace Test
     [Test]
     public void PaymentsTest()
     {
-      var controller = new DataController(new MetaDataEditor(), _dbOptions, _settings);
+        var controller = new DataController(_dbOptions, new JsonDeserializer<Payment>(), new JsonDeserializer<Rate>(), new MetaDataEditor(), _settings);
 
-      var paymentJson =
+        var paymentJson =
 @"{
   ""ete_id"": 8595930,
   ""source"": ""amocrm"",
@@ -111,9 +112,9 @@ namespace Test
     [Test]
     public void RateTest()
     {
-      var controller = new DataController(new MetaDataEditor(), _dbOptions, _settings);
+        var controller = new DataController(_dbOptions, new JsonDeserializer<Payment>(), new JsonDeserializer<Rate>(), new MetaDataEditor(), _settings);
 
-      var rateJson = 
+        var rateJson = 
 @"{
   ""rate"": [
     {

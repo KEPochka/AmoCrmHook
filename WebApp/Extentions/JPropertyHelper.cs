@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
 using WebApp.DynamicTypeDescription;
 using WebApp.DynamicTypeGeneration;
+using WebApp.Services;
 
 namespace WebApp.Extentions
 {
@@ -13,15 +13,7 @@ namespace WebApp.Extentions
     {
         private static readonly CultureInfo CultureInfo = new("en");
 
-        private static readonly ConcurrentDictionary<string, PropertyDescriptor[]> PropertyDescriptorCache = new();
-
-        public static PropertyDescriptor[]? GetProperties(string name)
-        {
-            PropertyDescriptorCache.TryGetValue(name, out var result);
-            return result;
-        }
-
-        public static void SetPropertyValue<TTarget>(this JProperty prop, PropertyDescriptorCollection properties, DynamicPropertyManager<TTarget> propertyManager, TTarget trgObject, string modelsPath, string namespaceName, List<string> newProps)
+        public static void SetPropertyValue<TTarget>(this JProperty prop, PropertyDescriptorCollection properties, DynamicPropertyManager<TTarget> propertyManager, TTarget trgObject, string modelsPath, string namespaceName, List<string> newProps, IPropertiesCache cache)
         {
             if (prop.Value.GetType() == typeof(JArray))
             {
@@ -60,7 +52,7 @@ namespace WebApp.Extentions
                     if (!newProps.Contains(newProp))
                     {
                         newProps.Add(newProp);
-                        PropertyDescriptorCache.AddOrUpdate($"{newProp}{objVal}", props, (_, v) => v);
+                        cache.AddOrUpdate($"{newProp}{objVal}", props);
                     }
                 }
             }

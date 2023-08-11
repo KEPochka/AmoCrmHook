@@ -1,13 +1,39 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Collections.Concurrent;
+using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using WebApp.DynamicTypeDescription;
 using WebApp.Extentions;
 
 namespace WebApp.Services
 {
-    public static class JsonDeserializer<TModel> where TModel : class, new()
+    public interface IJsonDeserializer<TModel>
     {
-        public static Dictionary<TModel, PropertyDescriptorCollection> ParseJson(JArray parsingObject, string modelsPath, string namespaceName, out List<string> newProps)
+        public Dictionary<TModel, PropertyDescriptorCollection> ParseJson(JArray parsingObject, string modelsPath, string namespaceName, out List<string> newProps);
+    }
+
+    public interface IPropertiesCache
+    {
+        public void AddOrUpdate(string name, PropertyDescriptor[] properties);
+
+        public PropertyDescriptor[]? GetProperties(string name);
+    }
+
+    public class JsonDeserializer<TModel> : IPropertiesCache, IJsonDeserializer<TModel> where TModel : class, new()
+    {
+        private readonly ConcurrentDictionary<string, PropertyDescriptor[]> _propertyDescriptorCache = new();
+
+        public void AddOrUpdate(string name, PropertyDescriptor[] properties)
+        {
+            _propertyDescriptorCache.AddOrUpdate(name, properties, (_, v) => v);
+        }
+
+        public PropertyDescriptor[]? GetProperties(string name)
+        {
+            _propertyDescriptorCache.TryGetValue(name, out var result);
+            return result;
+        }
+
+        public Dictionary<TModel, PropertyDescriptorCollection> ParseJson(JArray parsingObject, string modelsPath, string namespaceName, out List<string> newProps)
         {
             var objects = new Dictionary<TModel, PropertyDescriptorCollection>();
 
@@ -23,7 +49,7 @@ namespace WebApp.Services
                 foreach (var jToken in jTokens)
                 {
                     var prop = (JProperty)jToken;
-                    prop.SetPropertyValue(properties, propertyManager, objModel, modelsPath, namespaceName, newProps);
+                    prop.SetPropertyValue(properties, propertyManager, objModel, modelsPath, namespaceName, newProps, this);
                 }
 
                 objects.Add(objModel, TypeDescriptor.GetProperties(typeof(TModel)));
