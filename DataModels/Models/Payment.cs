@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Data.Models;
 
 [Table("payments")]
-public partial class Payment
+public class Payment
 {
     [Column("id")]
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Int64 Id { get; set; }
+    public long Id { get; set; }
 
     [Column("price")]
     public decimal Price { get; set; }
@@ -17,7 +17,7 @@ public partial class Payment
     public string? Comment { get; set; }
 
     [Column("rate_id")]
-    public Int64? RateId { get; set; }
+    public long? RateId { get; set; }
 
     [Column("event_date")]
     public DateTime? EventDate { get; set; }
@@ -33,7 +33,7 @@ public partial class Payment
 
     [ForeignKey("PaymentType")]
     [Column("payment_type_id")]
-    public Int64? PaymentTypeId { get; set; }
+    public long? PaymentTypeId { get; set; }
 
     public PaymentType? PaymentType { get; set; }
 

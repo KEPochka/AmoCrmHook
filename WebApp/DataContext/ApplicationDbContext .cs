@@ -11,7 +11,8 @@ namespace WebApp.DataContext
         public static void RegisterAllEntities(this ModelBuilder modelBuilder, params Assembly[] assemblies)
         {
             var types = assemblies.SelectMany(asm => asm.GetExportedTypes())
-                                  .Where(cls => cls.IsClass && cls.IsPublic && !cls.IsAbstract && cls.CustomAttributes.Any(attr => attr.AttributeType == typeof(TableAttribute)))
+                                  .Where(cls => cls is { IsClass: true, IsPublic: true, IsAbstract: false } &&
+                                                cls.CustomAttributes.Any(attr => attr.AttributeType == typeof(TableAttribute)))
                                   .ToArray();
 
             RegisterEntities(modelBuilder, types);

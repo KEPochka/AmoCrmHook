@@ -14,7 +14,7 @@ namespace WebApp.DynamicTypeGeneration
     {
         public static string GenerateCSharpCode(this CodeCompileUnit compileunit, string sourceFile)
         {
-            using CSharpCodeProvider provider = new CSharpCodeProvider();
+            using var provider = new CSharpCodeProvider();
 
             if (provider.FileExtension[0] == '.')
                 sourceFile += provider.FileExtension;
@@ -25,8 +25,8 @@ namespace WebApp.DynamicTypeGeneration
             if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
-            using StreamWriter sw = new StreamWriter(sourceFile, false);
-            using IndentedTextWriter tw = new IndentedTextWriter(sw, "    ");
+            using var sw = new StreamWriter(sourceFile, false);
+            using var tw = new IndentedTextWriter(sw, "    ");
 
             provider.GenerateCodeFromCompileUnit(compileunit, tw, new CodeGeneratorOptions());
 
@@ -41,7 +41,7 @@ namespace WebApp.DynamicTypeGeneration
         {
             var assemblyName = Path.GetFileNameWithoutExtension(assemblyFile);
 
-            StringBuilder asmInfo = new StringBuilder();
+            var asmInfo = new StringBuilder();
             asmInfo.AppendLine("using System;");
             asmInfo.AppendLine("using System.Reflection;");
             asmInfo.AppendLine($"[assembly: AssemblyTitle(\"{assemblyName}\")]");
@@ -71,13 +71,13 @@ namespace WebApp.DynamicTypeGeneration
             };
             MetadataReference[] references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
 
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            var compilation = CSharpCompilation.Create(
                 Path.GetFileName(assemblyFile),
                 syntaxTrees: syntaxTrees,
                 references: references,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            EmitResult result = compilation.Emit(assemblyFile, Path.GetDirectoryName(assemblyFile) + "\\" + assemblyName + ".pdb");
+            var result = compilation.Emit(assemblyFile, Path.GetDirectoryName(assemblyFile) + "\\" + assemblyName + ".pdb");
 
             if (!result.Success)
             {
@@ -85,7 +85,7 @@ namespace WebApp.DynamicTypeGeneration
                     diagnostic.IsWarningAsError ||
                     diagnostic.Severity == DiagnosticSeverity.Error);
 
-                foreach (Diagnostic diagnostic in failures)
+                foreach (var diagnostic in failures)
                 {
                     Console.Error.WriteLine("\t{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
                 }

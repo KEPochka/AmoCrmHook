@@ -9,7 +9,7 @@ namespace WebApp.DynamicTypeDescription
 
 		public DynamicPropertyManager()
 		{
-			Type type = typeof(TTarget);
+			var type = typeof(TTarget);
 
 			provider = new DynamicTypeDescriptionProvider(type);
 			TypeDescriptor.AddProvider(provider, type);
@@ -52,7 +52,7 @@ namespace WebApp.DynamicTypeDescription
 		public static DynamicPropertyDescriptor<TTargetType, TPropertyType>
 			CreateProperty<TTargetType, TPropertyType>(string displayName, Func<TTargetType, TPropertyType?> getHandler, Attribute[]? attributes)
 		{
-			return new DynamicPropertyDescriptor<TTargetType, TPropertyType>(displayName, getHandler, (t, p) => { }, attributes);
+			return new DynamicPropertyDescriptor<TTargetType, TPropertyType>(displayName, getHandler, (_, _) => { }, attributes);
 		}
 	}
 }

@@ -8,27 +8,25 @@ namespace WebApp.Extentions
     {
         private class CacheKey
         {
-            public string? objName { get; set; }
+            public string? ObjName { get; set; }
 
-            public long objId { get; set; }
+            public long ObjId { get; set; }
 
             public override int GetHashCode()
             {
                 var res = 0;
-                if (!string.IsNullOrEmpty(this.objName))
-                {
-                    foreach (char ch in this.objName)
-                        res += ch;
-                }
-                return Convert.ToInt32($"{res}{this.objId}");
+                if (!string.IsNullOrEmpty(this.ObjName))
+                    res = this.ObjName.Aggregate(res, (current, ch) => current + ch);
+
+                return Convert.ToInt32($"{res}{this.ObjId}");
             }
         }
 
-        private static ConcurrentDictionary<int, object?> _ObjInstancesCache = new ConcurrentDictionary<int, object?>();
+        private static readonly ConcurrentDictionary<int, object?> ObjInstancesCache = new();
 
-        public static void AddProperty<TTarget, TProperty>(this IList<PropertyDescriptor> Properties, string name, TProperty val, TTarget obj)
+        public static void AddProperty<TTarget, TProperty>(this IList<PropertyDescriptor> properties, string name, TProperty val, TTarget obj)
         {
-            Properties.Add(DynamicPropertyManager<TTarget>.CreateProperty<TTarget, TProperty>(name, t => val, null));
+            properties.Add(DynamicPropertyManager<TTarget>.CreateProperty<TTarget, TProperty>(name, _ => val, null));
         }
 
         public static object GetNewObject(this PropertyDescriptor property, object srcObj, PropertyDescriptor[] srcProps, Type newObjType, out long id)
@@ -38,22 +36,16 @@ namespace WebApp.Extentions
             if (idProp == null)
                 throw new InvalidDataException($"Property {idProp} not found.");
 
-            var idObj = idProp.GetValue(srcObj);
-            if (idObj == null)
-                throw new InvalidDataException($"Property {idProp} is null.");
-
+            var idObj = idProp.GetValue(srcObj) ?? throw new InvalidDataException($"Property {idProp} is null.");
             id = (long)idObj;
 
             var key = new CacheKey
             {
-                objName = property.Name,
-                objId = id
+                ObjName = property.Name,
+                ObjId = id
             };
 
-            var obj = _ObjInstancesCache.GetOrAdd(key.GetHashCode(), Activator.CreateInstance(newObjType));
-            if (obj == null)
-                throw new InvalidOperationException($"Cann't create type '{0}'.");
-
+            var obj = ObjInstancesCache.GetOrAdd(key.GetHashCode(), Activator.CreateInstance(newObjType)) ?? throw new InvalidOperationException($"Cann't create type '{newObjType}'.");
             return obj;
         }
     }

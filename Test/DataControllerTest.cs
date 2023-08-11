@@ -1,37 +1,38 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApp;
-using WebApp.Controllers;
+using WebApp.Controllers.v1;
 using WebApp.DataContext;
-using WebApp.DataLoader;
+using WebApp.Services;
 
 namespace Test
 {
-    public class DataControllerTest
+  public class DataControllerTest
+  {
+    private readonly Settings _settings = new()
     {
-        [SetUp]
-        public void Setup()
-        {
-        }
+      ModelsPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\Models\\",
+      AssemblyPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\"
+    };
 
-        [Test]
-        public void PaymentsTest()
-        {
-            var settings = new Settings
-            {
-                ModelsPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\Models\\",
-                AssemblyPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\"
-            };
-            var connectionString = "Host=208.0.0.134; Port=5432; Database=AmoCRM; User ID=postgres; Password=123456; Pooling=true; Persist Security Info=false;";
-            var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseNpgsql(connectionString)
-                .Options;
+    private const string ConnectionString = "Host=208.0.0.134; Port=5432; Database=AmoCRM; User ID=postgres; Password=123456; Pooling=true; Persist Security Info=false;";
 
-            var loader = new MetaDataEditor();
+    private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
 
-            var controller = new DataController(loader, dbOptions, settings);
+    [SetUp]
+    public void Setup()
+    {
+      _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+        .UseNpgsql(ConnectionString)
+        .Options;
+    }
 
-            var paymentJson =
+    [Test]
+    public void PaymentsTest()
+    {
+      var controller = new DataController(new MetaDataEditor(), _dbOptions, _settings);
+
+      var paymentJson =
 @"{
   ""ete_id"": 8595930,
   ""source"": ""amocrm"",
@@ -99,12 +100,51 @@ namespace Test
   ""lead_pipeline_id"": 5309073
 }";
 
-            var result = (StatusCodeResult)controller.Put(paymentJson).Result;
+      var result = (StatusCodeResult)controller.Put(paymentJson).Result;
 
-            if(result.StatusCode == 200)
-                Assert.Pass();
-            else
-                Assert.Fail();
-        }
+      if (result.StatusCode == 200)
+        Assert.Pass();
+      else
+        Assert.Fail();
     }
+
+    [Test]
+    public void RateTest()
+    {
+      var controller = new DataController(new MetaDataEditor(), _dbOptions, _settings);
+
+      var rateJson = 
+@"{
+  ""rate"": [
+    {
+      ""id"": 1020,
+      ""name"": ""ÕŒ¬€… –≈«»ƒ≈Õ“ (—œ≈÷. œ–≈ƒÀŒ∆≈Õ»≈ Õ¿ Ã¿… 190 Û·. + 500 Û·.) "",
+      ""status"": ""‡ÍÚË‚ÂÌ"",
+      ""end_date"": 1717880400,
+      ""left_days"": 373,
+      ""paid_days"": 0,
+      ""start_date"": 1686344400,
+      ""paid_by_date"": null,
+      ""left_paid_days"": 0,
+      ""early_termination_date"": null
+    }
+  ],
+  ""ete_id"": 485859,
+  ""source"": ""amocrm"",
+  ""lead_id"": 30496340,
+  ""contact_id"": 49240468,
+  ""event_type"": ""lead_rate_changed"",
+  ""lead_status_id"": 47610111,
+  ""lead_created_at"": 1679950195,
+  ""lead_pipeline_id"": 5309073
+}";
+
+      var result = (StatusCodeResult)controller.Put(rateJson).Result;
+
+      if (result.StatusCode == 200)
+        Assert.Pass();
+      else
+        Assert.Fail();
+    }
+  }
 }

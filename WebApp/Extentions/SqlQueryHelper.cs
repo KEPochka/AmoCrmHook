@@ -20,9 +20,7 @@ namespace WebApp.Extentions
             var entities = new List<T>();
 
             while (result.Read())
-            {
                 entities.Add(map(result));
-            }
 
             context.Database.CloseConnection();
 

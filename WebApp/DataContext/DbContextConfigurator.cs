@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.DataContext
 {
@@ -10,7 +9,6 @@ namespace WebApp.DataContext
 
 	public class DbContextConfigurator : IDbContextConfigurator
 	{
-		[NotNull]
 		private readonly Type[] _types;
 
 		public DbContextConfigurator(Type[] types)

@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Data.Models;
 
 [Table("payment_types")]
-public partial class PaymentType
+public class PaymentType
 {
     [Column("id")]
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Int64 Id { get; set; }
+    public long Id { get; set; }
 
     [Column("value")]
     public string Value { get; set; } = null!;

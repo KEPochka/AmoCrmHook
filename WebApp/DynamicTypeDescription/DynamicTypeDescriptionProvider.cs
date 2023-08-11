@@ -46,7 +46,7 @@ namespace WebApp.DynamicTypeDescription
 					properties.Add(property);
 				}
 
-				foreach (PropertyDescriptor property in provider.Properties)
+				foreach (var property in provider.Properties)
 				{
 					properties.Add(property);
 				}

@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Data.Models;
 
 [Table("rates")]
-public partial class Rate
+public class Rate
 {
     [Column("id")]
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Int64 Id { get; set; }
+    public long Id { get; set; }
 
     [Column("name")]
     public string Name { get; set; } = null!;

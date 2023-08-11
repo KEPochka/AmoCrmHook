@@ -24,7 +24,7 @@ namespace WebApp.DynamicTypeGeneration
             var codeArg = new CodeAttributeArgument(new CodePrimitiveExpression(tableName));
             targetClass.CustomAttributes.Add(new CodeAttributeDeclaration("Table", codeArg));
 
-            CodeNamespace globalNamespace = new CodeNamespace();
+            var globalNamespace = new CodeNamespace();
             globalNamespace.Imports.Add(new CodeNamespaceImport("System"));
             globalNamespace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations"));
             globalNamespace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations.Schema"));
@@ -40,10 +40,10 @@ namespace WebApp.DynamicTypeGeneration
 
         public static void AddIdProperty(this CodeTypeDeclaration targetClass)
         {
-            StringBuilder asmInfo = new StringBuilder();
+            var asmInfo = new StringBuilder();
             asmInfo.AppendLine("        [Column(\"id\")]");
             asmInfo.AppendLine("        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
-            asmInfo.AppendLine("        public Int64 Id { get; set; }");
+            asmInfo.AppendLine("        public long Id { get; set; }");
 
             var newProperty = new CodeSnippetTypeMember
             {
@@ -58,7 +58,7 @@ namespace WebApp.DynamicTypeGeneration
             var propSnippet = new StringBuilder();
             propSnippet.AppendLine($"        [Column(\"{name.ToUnderscoreCase()}\")]");
             propSnippet.AppendLine($"        [ForeignKey(\"{fkName}\")]");
-            propSnippet.AppendLine($"        public Int64 {name} {{ get; set; }}");
+            propSnippet.AppendLine($"        public long {name} {{ get; set; }}");
             propSnippet.AppendLine("");
             propSnippet.AppendLine($"        public {fkName}? {fkName} {{ get; set; }}");
 
@@ -79,7 +79,7 @@ namespace WebApp.DynamicTypeGeneration
             else
                 typeName = type.Name;
 
-            StringBuilder asmInfo = new StringBuilder();
+            var asmInfo = new StringBuilder();
             asmInfo.AppendLine($"        [Column(\"{name.ToUnderscoreCase()}\")]");
             asmInfo.AppendLine($"        public {typeName} {name} {{ get; set; }}");
 
@@ -93,7 +93,7 @@ namespace WebApp.DynamicTypeGeneration
 
         public static CodeCompileUnit GenerateClass(this PropertyDescriptor[] properties, string modelsPath, string namespaceName, string className)
         {
-            var targetUnit = CreateTarget(namespaceName, className, out CodeTypeDeclaration targetClass);
+            var targetUnit = CreateTarget(namespaceName, className, out var targetClass);
 
             foreach (var prop in properties.Where(x => x.Name != x.PropertyType.Name && x.PropertyType.Name != "Type"))
             {
