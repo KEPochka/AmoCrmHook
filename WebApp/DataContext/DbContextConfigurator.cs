@@ -1,24 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace WebApp.DataContext
+namespace WebApp.DataContext;
+
+public interface IDbContextConfigurator
 {
-	public interface IDbContextConfigurator
+	public void Configure(ModelBuilder modelBuilder);
+}
+
+public class DbContextConfigurator : IDbContextConfigurator
+{
+	private readonly Type[] _types;
+
+	public DbContextConfigurator(Type[] types)
 	{
-		public void Configure(ModelBuilder modelBuilder);
+		_types = types;
 	}
 
-	public class DbContextConfigurator : IDbContextConfigurator
+	public void Configure(ModelBuilder modelBuilder)
 	{
-		private readonly Type[] _types;
-
-		public DbContextConfigurator(Type[] types)
-		{
-			_types = types;
-		}
-
-		public void Configure(ModelBuilder modelBuilder)
-		{
-			modelBuilder.RegisterEntities(_types);
-		}
+		modelBuilder.RegisterEntities(_types);
 	}
 }

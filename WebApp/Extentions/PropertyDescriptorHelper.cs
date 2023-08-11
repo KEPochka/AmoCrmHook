@@ -15,10 +15,10 @@ namespace WebApp.Extentions
             public override int GetHashCode()
             {
                 var res = 0;
-                if (!string.IsNullOrEmpty(this.ObjName))
-                    res = this.ObjName.Aggregate(res, (current, ch) => current + ch);
+                if (!string.IsNullOrEmpty(ObjName))
+                    res = ObjName.Aggregate(res, (current, ch) => current + ch);
 
-                return Convert.ToInt32($"{res}{this.ObjId}");
+                return Convert.ToInt32($"{res}{ObjId}");
             }
         }
 

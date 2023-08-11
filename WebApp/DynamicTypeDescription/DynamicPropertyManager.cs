@@ -1,58 +1,54 @@
 ﻿using System.ComponentModel;
 
-namespace WebApp.DynamicTypeDescription
+namespace WebApp.DynamicTypeDescription;
+
+public class DynamicPropertyManager<TTarget> : IDisposable
 {
-	public class DynamicPropertyManager<TTarget> : IDisposable
+	private readonly DynamicTypeDescriptionProvider _provider;
+	private readonly TTarget? _target;
+
+	public DynamicPropertyManager()
 	{
-		private readonly DynamicTypeDescriptionProvider provider;
-		private readonly TTarget? target;
+		var type = typeof(TTarget);
 
-		public DynamicPropertyManager()
+		_provider = new DynamicTypeDescriptionProvider(type);
+		TypeDescriptor.AddProvider(_provider, type);
+	}
+
+	public DynamicPropertyManager(TTarget target)
+	{
+		if (target == null)
+			throw new ArgumentNullException(nameof(target));
+
+		_target = target;
+
+		_provider = new DynamicTypeDescriptionProvider(typeof(TTarget));
+		TypeDescriptor.AddProvider(_provider, target);
+	}
+
+	public IList<PropertyDescriptor> Properties => _provider.Properties;
+
+	public void Dispose()
+	{
+		if (_target is null)
 		{
-			var type = typeof(TTarget);
-
-			provider = new DynamicTypeDescriptionProvider(type);
-			TypeDescriptor.AddProvider(provider, type);
+			TypeDescriptor.RemoveProvider(_provider, typeof(TTarget));
 		}
-
-		public DynamicPropertyManager(TTarget target)
+		else
 		{
-			if (target == null)
-				throw new ArgumentNullException(nameof(target));
-
-			this.target = target;
-
-			provider = new DynamicTypeDescriptionProvider(typeof(TTarget));
-			TypeDescriptor.AddProvider(provider, target);
+			TypeDescriptor.RemoveProvider(_provider, _target);
 		}
+	}
 
-		public IList<PropertyDescriptor> Properties
-		{
-			get { return provider.Properties; }
-		}
+	public static DynamicPropertyDescriptor<TTargetType, TPropertyType>
+		CreateProperty<TTargetType, TPropertyType>(string displayName, Func<TTargetType, TPropertyType?> getter, Action<TTargetType, TPropertyType?> setter, Attribute[] attributes)
+	{
+		return new DynamicPropertyDescriptor<TTargetType, TPropertyType>(displayName, getter, setter, attributes);
+	}
 
-		public void Dispose()
-		{
-			if (ReferenceEquals(target, null))
-			{
-				TypeDescriptor.RemoveProvider(provider, typeof(TTarget));
-			}
-			else
-			{
-				TypeDescriptor.RemoveProvider(provider, target);
-			}
-		}
-
-		public static DynamicPropertyDescriptor<TTargetType, TPropertyType>
-		   CreateProperty<TTargetType, TPropertyType>(string displayName, Func<TTargetType, TPropertyType?> getter, Action<TTargetType, TPropertyType?> setter, Attribute[] attributes)
-		{
-			return new DynamicPropertyDescriptor<TTargetType, TPropertyType>(displayName, getter, setter, attributes);
-		}
-
-		public static DynamicPropertyDescriptor<TTargetType, TPropertyType>
-			CreateProperty<TTargetType, TPropertyType>(string displayName, Func<TTargetType, TPropertyType?> getHandler, Attribute[]? attributes)
-		{
-			return new DynamicPropertyDescriptor<TTargetType, TPropertyType>(displayName, getHandler, (_, _) => { }, attributes);
-		}
+	public static DynamicPropertyDescriptor<TTargetType, TPropertyType>
+		CreateProperty<TTargetType, TPropertyType>(string displayName, Func<TTargetType, TPropertyType?> getHandler, Attribute[]? attributes)
+	{
+		return new DynamicPropertyDescriptor<TTargetType, TPropertyType>(displayName, getHandler, (_, _) => { }, attributes);
 	}
 }

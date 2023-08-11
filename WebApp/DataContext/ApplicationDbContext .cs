@@ -4,53 +4,52 @@ using Microsoft.EntityFrameworkCore;
 using Data.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApp.DataContext
+namespace WebApp.DataContext;
+
+public static class ModelBuilderExtensions
 {
-    public static class ModelBuilderExtensions
+    public static void RegisterAllEntities(this ModelBuilder modelBuilder, params Assembly[] assemblies)
     {
-        public static void RegisterAllEntities(this ModelBuilder modelBuilder, params Assembly[] assemblies)
-        {
-            var types = assemblies.SelectMany(asm => asm.GetExportedTypes())
-                                  .Where(cls => cls is { IsClass: true, IsPublic: true, IsAbstract: false } &&
-                                                cls.CustomAttributes.Any(attr => attr.AttributeType == typeof(TableAttribute)))
-                                  .ToArray();
+        var types = assemblies.SelectMany(asm => asm.GetExportedTypes())
+            .Where(cls => cls is { IsClass: true, IsPublic: true, IsAbstract: false } &&
+                          cls.CustomAttributes.Any(attr => attr.AttributeType == typeof(TableAttribute)))
+            .ToArray();
 
-            RegisterEntities(modelBuilder, types);
-        }
-
-        public static void RegisterEntities(this ModelBuilder modelBuilder, Type[] types)
-        {
-            foreach (var type in types)
-                modelBuilder.Entity(type);
-        }
+        RegisterEntities(modelBuilder, types);
     }
 
-    public class ApplicationDbContext : DbContext
+    public static void RegisterEntities(this ModelBuilder modelBuilder, Type[] types)
     {
-        [NotNull]
-        private readonly IDbContextConfigurator? _dbContextConfigurator = null;
+        foreach (var type in types)
+            modelBuilder.Entity(type);
+    }
+}
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+public class ApplicationDbContext : DbContext
+{
+    [NotNull]
+    private readonly IDbContextConfigurator? _dbContextConfigurator = null;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+    }
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IDbContextConfigurator dbContextConfigurator) : base(options)
+    {
+        _dbContextConfigurator = dbContextConfigurator;
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        if (_dbContextConfigurator != null)
         {
+            _dbContextConfigurator.Configure(modelBuilder);
         }
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IDbContextConfigurator dbContextConfigurator) : base(options)
+        else
         {
-            _dbContextConfigurator = dbContextConfigurator;
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            if (_dbContextConfigurator != null)
-            {
-                _dbContextConfigurator.Configure(modelBuilder);
-            }
-            else
-            {
-                base.OnModelCreating(modelBuilder);
-                var entitiesAssembly = typeof(Payment).Assembly;
-                modelBuilder.RegisterAllEntities(entitiesAssembly);
-            }
+            base.OnModelCreating(modelBuilder);
+            var entitiesAssembly = typeof(Payment).Assembly;
+            modelBuilder.RegisterAllEntities(entitiesAssembly);
         }
     }
 }

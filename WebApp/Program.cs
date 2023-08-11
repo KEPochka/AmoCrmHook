@@ -28,7 +28,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 	c.SwaggerDoc("v1", new OpenApiInfo { Title = "amoCRM Hook API", Version = "v1" });
-	c.IncludeXmlComments(Path.Combine(System.AppContext.BaseDirectory, "WebApp.xml"));
+	c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "WebApp.xml"));
 });
 
 var app = builder.Build();

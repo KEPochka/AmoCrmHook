@@ -5,7 +5,6 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Emit;
 using System.Text;
 
 namespace WebApp.DynamicTypeGeneration
@@ -65,11 +64,11 @@ namespace WebApp.DynamicTypeGeneration
 
             var refPaths = new[]
             {
-                typeof(System.DateTime).GetTypeInfo().Assembly.Location,
+                typeof(DateTime).GetTypeInfo().Assembly.Location,
                 typeof(System.ComponentModel.DataAnnotations.KeyAttribute).GetTypeInfo().Assembly.Location,
                 Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location) ?? "", "System.Runtime.dll")
             };
-            MetadataReference[] references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
+            var references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
 
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(assemblyFile),
@@ -81,14 +80,12 @@ namespace WebApp.DynamicTypeGeneration
 
             if (!result.Success)
             {
-                IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
+                var failures = result.Diagnostics.Where(diagnostic =>
                     diagnostic.IsWarningAsError ||
                     diagnostic.Severity == DiagnosticSeverity.Error);
 
                 foreach (var diagnostic in failures)
-                {
                     Console.Error.WriteLine("\t{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
-                }
             }
 
             return result.Success;
