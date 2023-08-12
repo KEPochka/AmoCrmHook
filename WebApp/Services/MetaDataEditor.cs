@@ -8,8 +8,6 @@ namespace WebApp.Services
 {
     public interface IMetaDataEditor
     {
-        bool CreateDatabase(ApplicationDbContext dbContext);
-
         void CodeFirst(ApplicationDbContext dbContext);
     }
 
@@ -20,11 +18,6 @@ namespace WebApp.Services
 
         private readonly Dictionary<IEntityType, IEnumerable<IProperty>> _notFoudModels = new();
         private readonly Dictionary<IEntityType, IEnumerable<IProperty>> _notFoudProperties = new();
-
-        public bool CreateDatabase(ApplicationDbContext dbContext)
-        {
-            return dbContext.Database.EnsureCreated();
-        }
 
         public void CodeFirst(ApplicationDbContext dbContext)
         {

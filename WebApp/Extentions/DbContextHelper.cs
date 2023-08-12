@@ -4,7 +4,7 @@ namespace WebApp.Extentions
 {
     public static class DbContextHelper
     {
-        public static void AddOrUpdate(this DbContext context, object data)
+        public static bool AddOrUpdate(this DbContext context, object data)
         {
             var type = data.GetType();
             var properties = type.GetProperties();
@@ -20,8 +20,8 @@ namespace WebApp.Extentions
                 var val = property.GetValue(data);
                 if (val != null)
                 {
-                    AddOrUpdate(context, val);
-                    property.SetValue(data, null);
+                    if(!AddOrUpdate(context, val))
+                        property.SetValue(data, null);
                 }
             }
 
@@ -30,12 +30,16 @@ namespace WebApp.Extentions
             var dbEntity = context.Find(type, keyVal);
             if (dbEntity != null)
             {
+                if(context.Entry(dbEntity).State == EntityState.Added)
+                    return true;
+
                 context.Entry(dbEntity).CurrentValues.SetValues(data);
                 context.Entry(dbEntity).State = EntityState.Modified;
-                return;
+                return false;
             }
 
             context.Add(data);
+            return true;
         }
     }
 }

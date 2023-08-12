@@ -44,6 +44,31 @@ public class DataController : ControllerBase
     private DbContextOptions<ApplicationDbContext> DbOptions { get; }
 
     /// <summary>
+    /// Creates the database and all tables corresponding to the current state of the models.
+    /// </summary>
+    /// <remarks>The database must be completely missing any tables or the database must be completely absent..</remarks>
+    /// <response code="200">The database has been successfully created.</response>
+    /// <response code="400">Failed to create database.</response>
+    [HttpPost(Name = "CreateDatabase")]
+    public async Task<IActionResult> Post()
+    {
+        try
+        {
+            await using var dbContext = new ApplicationDbContext(DbOptions);
+
+            await dbContext.Database.EnsureCreatedAsync();
+
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync(ex.Message);
+
+            return BadRequest();
+        }
+    }
+
+    /// <summary>
     /// Parses JSON and inserts data into the database.
     /// </summary>
     /// <remarks>In the absence of the necessary structures in the database, the service will perform the appropriate changes.</remarks>

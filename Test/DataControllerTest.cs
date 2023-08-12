@@ -16,7 +16,7 @@ namespace Test
       AssemblyPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\"
     };
 
-    private const string ConnectionString = "Host=208.0.0.134; Port=5432; Database=AmoCRM; User ID=postgres; Password=123456; Pooling=true; Persist Security Info=false;";
+    private const string ConnectionString = "Host=208.0.0.134; Port=5432; Database=AmoCRM; User ID=postgres; Password=123456; Pooling=true; Persist Security Info=false; Include Error Detail=true";
 
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
 

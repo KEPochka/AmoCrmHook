@@ -90,8 +90,7 @@ namespace WebApp.Extentions
                             newProp = prop.GetPropertyName();
                             if (newProp.EndsWith("Date"))
                             {
-                                var dt = (new DateTime(1970, 01, 01)).AddSeconds(value);
-                                DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                                var dt = (new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc)).AddSeconds(value);
                                 propertyManager.Properties.Add(DynamicPropertyManager<TTarget>.CreateProperty<TTarget, DateTime>(newProp, _ => dt, null));
                             }
                             else if (newProp.EndsWith("Id"))
@@ -112,8 +111,7 @@ namespace WebApp.Extentions
                             else if (valueType == typeof(double))
                                 property.SetValue(dataObject, Convert.ToDouble(value));
                             else if (valueType == typeof(DateTime)) {
-                                var dt = (new DateTime(1970, 01, 01)).AddSeconds(value);
-                                DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                                var dt = (new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc)).AddSeconds(value);
                                 property.SetValue(dataObject, dt);
                             }
                         }
@@ -195,8 +193,7 @@ namespace WebApp.Extentions
                         else if (valueType == typeof(double))
                             property.SetValue(dataObject, Convert.ToDouble(value));
                         else if (valueType == typeof(DateTime)) {
-                            var dt = (new DateTime(1970, 01, 01)).AddSeconds(value);
-                            DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                            var dt = (new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc)).AddSeconds(value);
                             property.SetValue(dataObject, dt);
                         }
                     }
@@ -270,8 +267,7 @@ namespace WebApp.Extentions
                             if (newProp.EndsWith("Date"))
                             {
                                 var value = propValue.Value<int>();
-                                var dt = (new DateTime(1970, 01, 01)).AddSeconds(value);
-                                DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                                var dt = (new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc)).AddSeconds(value);
                                 provider.Properties.AddProperty(newProp, dt, returnObj);
                             }
                             else if (newProp.EndsWith("Id"))

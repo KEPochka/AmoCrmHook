@@ -14,6 +14,9 @@ var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
 	.UseNpgsql(connectionString)
 	.Options;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+
 var settings = builder.Configuration.GetSection("Settings").Get<Settings>();
 builder.Services.AddSingleton(settings);
 builder.Services.AddSingleton<IDbContextOptions>(dbOptions);

@@ -6,7 +6,7 @@ using WebApp.Extentions;
 
 namespace WebApp.Services;
 
-public interface IJsonDeserializer<TModel>
+public interface IJsonDeserializer<TModel> where TModel : notnull, new()
 {
     public Dictionary<TModel, PropertyDescriptorCollection> ParseJson(JArray parsingObject, string modelsPath, string namespaceName, out List<string> newProps);
 }
@@ -20,16 +20,16 @@ public interface IPropertiesCache
 
 public class JsonDeserializer<TModel> : IPropertiesCache, IJsonDeserializer<TModel> where TModel : class, new()
 {
-    private readonly ConcurrentDictionary<string, PropertyDescriptor[]> _propertyDescriptorCache = new();
+    private readonly ConcurrentDictionary<string, PropertyDescriptor[]> PropertyDescriptorCache = new();
 
     public void AddOrUpdate(string name, PropertyDescriptor[] properties)
     {
-        _propertyDescriptorCache.AddOrUpdate(name, properties, (_, v) => v);
+        PropertyDescriptorCache.AddOrUpdate(name, properties, (_, v) => v);
     }
 
     public PropertyDescriptor[]? GetProperties(string name)
     {
-        _propertyDescriptorCache.TryGetValue(name, out var result);
+        PropertyDescriptorCache.TryGetValue(name, out var result);
         return result;
     }
 
