@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using WebApp.DataContext;
 using WebApp.DynamicTypeGeneration;
@@ -124,31 +125,21 @@ public class DataController : ControllerBase
                 });
             }
 
+            var assemblyPath = Settings.AssemblyPath + "NewData.dll";
+
             if (newPaymentProperties is { Count: > 0 } || newRateProperties is { Count: > 0 })
             {
                 var dir = new DirectoryInfo(Settings.ModelsPath);
                 var files = dir.GetFiles("*.cs").Select(x => x.FullName).ToArray();
-                var assemblyPath = Settings.AssemblyPath + "NewData.dll";
 
                 if (GenerateSource.CompileCSharpCode(files, assemblyPath))
-                {
-                    var assembly = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
-                    var types = assembly.GetExportedTypes()
-                        .Where(x => !x.IsAbstract)
-                        .ToArray();
-
-                    await using var dbContext = new ApplicationDbContext(DbOptions, new DbContextConfigurator(types));
-
-                    MetaDataEditor.CodeFirst(dbContext);
-
-                    if (payments != null)
-                        await UpsertDataInTheDatabase(dbContext, types, payments, (IPropertiesCache)PaymentDeserializer);
-
-                    if (rates != null)
-                        await UpsertDataInTheDatabase(dbContext, types, rates, (IPropertiesCache)RateDeserializer);
-
-                    await dbContext.SaveChangesAsync();
-                }
+                    await WriteDataToDb(MetaDataEditor, DbOptions, assemblyPath, payments, (IPropertiesCache)PaymentDeserializer, rates, (IPropertiesCache)RateDeserializer);
+                else
+                    throw new InvalidOperationException("Cann't compile \"NewData.dll\".");
+            }
+            else if (System.IO.File.Exists(assemblyPath))
+            {
+                await WriteDataToDb(MetaDataEditor, DbOptions, assemblyPath, payments, (IPropertiesCache)PaymentDeserializer, rates, (IPropertiesCache)RateDeserializer);
             }
             else
             {
@@ -236,5 +227,28 @@ public class DataController : ControllerBase
                 dbContext.AddOrUpdate(obj);
             }
         });
+    }
+
+    private static async Task WriteDataToDb(IMetaDataEditor metaDataEditor, DbContextOptions<ApplicationDbContext> dbOptions, string assemblyPath,
+        Dictionary<Payment, PropertyDescriptorCollection>? payments, IPropertiesCache paymentCache,
+        Dictionary<Rate, PropertyDescriptorCollection>? rates, IPropertiesCache rateCache)
+    {
+        var assembly = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
+        var types = assembly.GetExportedTypes()
+            .Where(x => x is { IsClass: true, IsPublic: true, IsAbstract: false } &&
+                        x.CustomAttributes.Any(attr => attr.AttributeType == typeof(TableAttribute)))
+            .ToArray();
+
+        await using var dbContext = new ApplicationDbContext(dbOptions, new DbContextConfigurator(types));
+
+        metaDataEditor.CodeFirst(dbContext);
+
+        if (payments != null)
+            await UpsertDataInTheDatabase(dbContext, types, payments, paymentCache);
+
+        if (rates != null)
+            await UpsertDataInTheDatabase(dbContext, types, rates, rateCache);
+
+        await dbContext.SaveChangesAsync();
     }
 }

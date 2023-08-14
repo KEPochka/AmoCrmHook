@@ -12,8 +12,9 @@ namespace Test
   {
     private readonly Settings _settings = new()
     {
-      ModelsPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\Models\\",
-      AssemblyPath = "d:\\Projects\\WebApp\\WebApp\\bin\\Debug\\net6.0\\"
+      Namespace = "Data.NewModels",
+      ModelsPath = @"d:\Projects\AmoCrmHook\WebApp\bin\Debug\net6.0\Models\",
+      AssemblyPath = @"d:\\Projects\\AmoCrmHook\\WebApp\\bin\\Debug\\net6.0\\"
     };
 
     private const string ConnectionString = "Host=208.0.0.134; Port=5432; Database=AmoCRM; User ID=postgres; Password=123456; Pooling=true; Persist Security Info=false; Include Error Detail=true";
@@ -31,9 +32,9 @@ namespace Test
     [Test]
     public void PaymentsTest()
     {
-        var controller = new DataController(_dbOptions, new JsonDeserializer<Payment>(), new JsonDeserializer<Rate>(), new MetaDataEditor(), _settings);
+      var controller = new DataController(_dbOptions, new JsonDeserializer<Payment>(), new JsonDeserializer<Rate>(), new MetaDataEditor(), _settings);
 
-        var paymentJson =
+      var paymentJson =
 @"{
   ""ete_id"": 8595930,
   ""source"": ""amocrm"",
@@ -112,9 +113,9 @@ namespace Test
     [Test]
     public void RateTest()
     {
-        var controller = new DataController(_dbOptions, new JsonDeserializer<Payment>(), new JsonDeserializer<Rate>(), new MetaDataEditor(), _settings);
+      var controller = new DataController(_dbOptions, new JsonDeserializer<Payment>(), new JsonDeserializer<Rate>(), new MetaDataEditor(), _settings);
 
-        var rateJson = 
+      var rateJson =
 @"{
   ""rate"": [
     {

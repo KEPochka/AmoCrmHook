@@ -36,9 +36,7 @@ namespace WebApp.Extentions
                             fndChildProp.SetValue(childObject, val);
                         }
                         else
-                        {
                             chldProp.SetValue(childProperties, childObject);
-                        }
                     }
                 }
                 else
@@ -50,10 +48,8 @@ namespace WebApp.Extentions
                     var objVal = idProp.GetValue(childObjType) ?? throw new InvalidDataException("Property 'Id' is null.");
                     var newProp = prop.AddObjProperty(propertyManager, childObjType, (long)objVal);
                     if (!newProps.Contains(newProp))
-                    {
                         newProps.Add(newProp);
-                        cache.AddOrUpdate($"{newProp}{objVal}", props);
-                    }
+                    cache.AddOrUpdate($"{newProp}{objVal}", props);
                 }
             }
             else if (prop.Value.GetType() == typeof(JValue))
@@ -63,9 +59,7 @@ namespace WebApp.Extentions
                     newProps.Add(newProp);
             }
             else
-            {
                 throw new InvalidDataException("Unexpected value type.");
-            }
         }
 
         private static string GetPropertyName(this JProperty prop)

@@ -20,16 +20,16 @@ public interface IPropertiesCache
 
 public class JsonDeserializer<TModel> : IPropertiesCache, IJsonDeserializer<TModel> where TModel : class, new()
 {
-    private readonly ConcurrentDictionary<string, PropertyDescriptor[]> PropertyDescriptorCache = new();
+    private readonly ConcurrentDictionary<string, PropertyDescriptor[]> _propertyDescriptorCache = new();
 
     public void AddOrUpdate(string name, PropertyDescriptor[] properties)
     {
-        PropertyDescriptorCache.AddOrUpdate(name, properties, (_, v) => v);
+        _propertyDescriptorCache.AddOrUpdate(name, properties, (_, v) => v);
     }
 
     public PropertyDescriptor[]? GetProperties(string name)
     {
-        PropertyDescriptorCache.TryGetValue(name, out var result);
+        _propertyDescriptorCache.TryGetValue(name, out var result);
         return result;
     }
 

@@ -13,7 +13,7 @@ namespace WebApp.Extentions
                                      .Select(x => x.prop)
                                      .FirstOrDefault();
             if (keyField == null)
-                throw new InvalidDataException($"{type.FullName} does not have a KeyAttribute field. Unable to exec AddOrUpdate call.");
+                throw new InvalidDataException($"{type.FullName} does not have the 'Id' field. Unable to exec AddOrUpdate call.");
 
             foreach (var property in properties.Where(p => p.Name == p.PropertyType.Name))
             {
@@ -30,11 +30,12 @@ namespace WebApp.Extentions
             var dbEntity = context.Find(type, keyVal);
             if (dbEntity != null)
             {
-                if(context.Entry(dbEntity).State == EntityState.Added)
+                var contextEntry = context.Entry(dbEntity);
+                if(contextEntry.State == EntityState.Added)
                     return true;
 
-                context.Entry(dbEntity).CurrentValues.SetValues(data);
-                context.Entry(dbEntity).State = EntityState.Modified;
+                contextEntry.CurrentValues.SetValues(data);
+                contextEntry.State = EntityState.Modified;
                 return false;
             }
 
