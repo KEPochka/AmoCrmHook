@@ -78,7 +78,11 @@ namespace WebApp.DynamicTypeGeneration
 
             var result = compilation.Emit(assemblyFile, Path.GetDirectoryName(assemblyFile) + "\\" + assemblyName + ".pdb");
 
-            if (!result.Success)
+            if (result.Success)
+            {
+                Console.Out.WriteLine($"Assembly '{Path.GetFileName(assemblyFile)}' successfully compiled.");
+            }
+            else
             {
                 var failures = result.Diagnostics.Where(diagnostic =>
                     diagnostic.IsWarningAsError ||

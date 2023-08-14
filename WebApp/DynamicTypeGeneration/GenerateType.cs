@@ -7,7 +7,7 @@ namespace WebApp.DynamicTypeGeneration
 {
     public static class GenerateType
     {
-        public static CodeCompileUnit GenerateClass(this PropertyDescriptor[] properties, string modelsPath, string namespaceName, string className)
+        public static void GenerateClass(this PropertyDescriptor[] properties, string modelsPath, string namespaceName, string className)
         {
             var targetUnit = CreateTarget(namespaceName, className, out var targetClass);
 
@@ -34,8 +34,9 @@ namespace WebApp.DynamicTypeGeneration
                 }
             }
 
-            targetUnit.GenerateCSharpCode(modelsPath + className);
-            return targetUnit;
+            var sourceFile = targetUnit.GenerateCSharpCode(modelsPath + className);
+
+            Console.Out.WriteLineAsync($"New class {className} successfully generated to the file '{sourceFile}'.");
         }
 
         private static string ToUnderscoreCase(this string str)

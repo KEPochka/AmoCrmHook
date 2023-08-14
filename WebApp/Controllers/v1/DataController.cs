@@ -57,7 +57,10 @@ public class DataController : ControllerBase
         {
             await using var dbContext = new ApplicationDbContext(DbOptions);
 
-            await dbContext.Database.EnsureCreatedAsync();
+            if(await dbContext.Database.EnsureCreatedAsync())
+                await Console.Out.WriteLineAsync("The database successfully created.");
+            else
+                await Console.Out.WriteLineAsync("The database already exists.");
 
             return Ok();
         }
@@ -93,6 +96,8 @@ public class DataController : ControllerBase
 
             if (dynamicObject.payments != null)
             {
+                await Console.Out.WriteLineAsync("Incoming request for the Payment structure.");
+
                 payments = await Task.Run(() =>
                 {
                     Dictionary<Payment, PropertyDescriptorCollection> result =
@@ -100,9 +105,13 @@ public class DataController : ControllerBase
 
                     if (newPaymentProperties is { Count: > 0 })
                     {
+                        Console.Out.WriteLine($"Found {newPaymentProperties.Count} new properties for the Payment structure.");
+
                         var properties = result.MaxBy(x => x.Value.Count).Value.Cast<PropertyDescriptor>().ToArray();
                         properties.GenerateClass(Settings.ModelsPath, Settings.Namespace, "Payment");
                     }
+                    else
+                        Console.Out.WriteLine("No new properties found for the Payment structure.");
 
                     return result;
                 });
@@ -110,6 +119,8 @@ public class DataController : ControllerBase
 
             if (dynamicObject.rate != null)
             {
+                await Console.Out.WriteLineAsync("Incoming request for the Rate structure.");
+
                 rates = await Task.Run(() =>
                 {
                     Dictionary<Rate, PropertyDescriptorCollection> result =
@@ -117,9 +128,13 @@ public class DataController : ControllerBase
 
                     if (newRateProperties is { Count: > 0 })
                     {
+                        Console.Out.WriteLine($"Found {newRateProperties.Count} new properties for the Rate structure.");
+
                         var properties = result.MaxBy(x => x.Value.Count).Value.Cast<PropertyDescriptor>().ToArray();
                         properties.GenerateClass(Settings.ModelsPath, Settings.Namespace, "Rate");
                     }
+                    else
+                        Console.Out.WriteLine("No new properties found for the Rate structure.");
 
                     return result;
                 });
@@ -161,6 +176,8 @@ public class DataController : ControllerBase
 
                 await dbContext.SaveChangesAsync();
             }
+
+            await Console.Out.WriteLineAsync("Incoming data successfully saved to the database.");
 
             return Ok();
         }
